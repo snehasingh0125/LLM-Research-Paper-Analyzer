@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Beamer Slides for {{ paper.title|truncatechars:50 }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+
+    <!-- Header -->
+    <div class="mb-10 text-center">
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl">LaTeX Beamer Code</h1>
+        <p class="mt-3 text-lg text-slate-600 dark:text-slate-400">
+            Generated for: <span class="font-medium">{{ paper.title }}</span>
+        </p>
+    </div>
+
+    <!-- Code Block -->
+    <div class="bg-slate-800 rounded-lg overflow-hidden ring-1 ring-slate-700">
+        <!-- Code Block Header -->
+        <div class="flex items-center justify-between bg-slate-900/70 px-4 py-2 text-xs font-mono text-slate-400">
+            <span>LaTeX</span>
+            <button id="copy-button" class="inline-flex items-center gap-x-1.5 rounded-md bg-slate-700 px-2 py-1 text-xs font-medium text-slate-300 hover:bg-slate-600 transition-colors">
+                <svg id="copy-icon-default" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 8.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v8.25A2.25 2.25 0 006 16.5h2.25m8.25-8.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-7.5A2.25 2.25 0 018.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 00-2.25 2.25v6" />
+                </svg>
+                <svg id="copy-icon-success" class="h-4 w-4 text-emerald-400 hidden" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                <span id="copy-button-text">Copy</span>
+            </button>
+        </div>
+        
+        <!-- Code Itself -->
+        <div class="p-4 overflow-x-auto">
+            <pre><code id="latex-code" class="text-sm text-slate-300 font-mono">{{ slide_deck.slides_json.beamer_code }}</code></pre>
+        </div>
+    </div>
+
+     <!-- Back Button -->
+    <div class="mt-12 text-center">
+        <a href="{% url 'paper_detail' paper.id %}" class="inline-flex items-center gap-x-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5" aria-hidden="true">
+                <path fill-rule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clip-rule="evenodd" />
+            </svg>
+            Back to Paper Details
+        </a>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const copyButton = document.getElementById('copy-button');
+    const buttonText = document.getElementById('copy-button-text');
+    const codeElement = document.getElementById('latex-code');
+    const defaultIcon = document.getElementById('copy-icon-default');
+    const successIcon = document.getElementById('copy-icon-success');
+
+    copyButton.addEventListener('click', function() {
+        if (!codeElement) return;
+
+        const codeToCopy = codeElement.innerText;
+        
+        // Create a temporary textarea to hold the text
+        const textArea = document.createElement('textarea');
+        textArea.value = codeToCopy;
+        
+        // Make the textarea invisible
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        textArea.style.top = '-9999px';
+        document.body.appendChild(textArea);
+        
+        // Select and copy
+        textArea.focus();
+        textArea.select();
+        
+        let success = false;
+        try {
+            success = document.execCommand('copy');
+        } catch (err) {
+            console.error('Fallback: Oops, unable to copy', err);
+        }
+
+        document.body.removeChild(textArea);
+
+        if (success) {
+            // Visual feedback for success
+            buttonText.textContent = 'Copied!';
+            defaultIcon.classList.add('hidden');
+            successIcon.classList.remove('hidden');
+
+            setTimeout(() => {
+                buttonText.textContent = 'Copy';
+                defaultIcon.classList.remove('hidden');
+                successIcon.classList.add('hidden');
+            }, 2000);
+        } else {
+            buttonText.textContent = 'Failed!';
+        }
+    });
+});
+</script>
+{% endblock %}

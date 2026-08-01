@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Select Papers to Compare{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+
+    <form action="{% url 'compare_papers' main_paper.id %}" method="GET">
+        <div class="mb-10 text-center">
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl">Select Papers for Comparison</h1>
+            <p class="mt-3 text-lg text-slate-600 dark:text-slate-400">Choose which papers you want to analyze alongside your main selection.</p>
+        </div>
+
+        <div class="space-y-12">
+
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100 border-b border-slate-300 dark:border-slate-700 pb-3">Comparing Against:</h2>
+                <div class="mt-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg p-5 ring-1 ring-slate-200 dark:ring-slate-700">
+                    <h3 class="text-lg font-semibold text-emerald-600 dark:text-emerald-500">{{ main_paper.title }}</h3>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ main_paper.authors|default:"No authors listed" }}</p>
+                </div>
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100 border-b border-slate-300 dark:border-slate-700 pb-3">Add to Comparison:</h2>
+                
+                {% if other_papers %}
+                <div id="paper-list" class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for paper in other_papers %}
+                    <label for="paper_{{ paper.id }}" class="group relative cursor-pointer">
+                        <input type="checkbox" name="other" value="{{ paper.id }}" id="paper_{{ paper.id }}" class="hidden peer">
+                        
+                        <div class="bg-white dark:bg-slate-900/70 p-4 rounded-lg ring-1 ring-slate-900/5 dark:ring-white/10 h-full
+                                    transition-all duration-200 ease-in-out
+                                    peer-checked:ring-2 peer-checked:ring-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/30">
+                            
+                            <h3 class="font-semibold text-slate-800 dark:text-slate-200 peer-checked:text-emerald-800 dark:peer-checked:text-emerald-400">{{ paper.title }}</h3>
+                            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ paper.authors|default:"No authors listed" }}</p>
+                            
+                            <div class="absolute top-3 right-3 h-5 w-5 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center 
+                                        transition-opacity duration-200 opacity-0 
+                                        peer-checked:opacity-100 peer-checked:bg-emerald-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center mt-10 py-12 px-6 bg-slate-100 dark:bg-slate-800/50 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-slate-400 dark:text-slate-500">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <h3 class="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">No Other Papers to Compare</h3>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">You need to upload at least one more paper to use the comparison feature.</p>
+                    <div class="mt-6">
+                        <a href="{% url 'upload_paper' %}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-emerald-600 text-white hover:bg-emerald-700 h-10 py-2 px-4 shadow-sm hover:shadow-md">
+                            Upload Another Paper
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="sticky bottom-0 w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm mt-12 py-4 border-t border-slate-200 dark:border-slate-800">
+            <div class="max-w-5xl mx-auto flex items-center justify-end gap-x-4">
+                <a href="{% url 'paper_detail' main_paper.id %}" class="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100">Cancel</a>
+                <button type="submit" id="compare-button" disabled
+                        class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-emerald-600 text-white hover:bg-emerald-700 h-10 py-2 px-6 shadow-sm hover:shadow-md
+                               disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:text-slate-500 dark:disabled:text-slate-400 disabled:cursor-not-allowed">
+                    Compare (0)
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paperList = document.getElementById('paper-list');
+    const compareButton = document.getElementById('compare-button');
+
+    if (paperList && compareButton) {
+        // Function to update the button state
+        const updateCompareButton = () => {
+            const selectedCount = paperList.querySelectorAll('input[type="checkbox"]:checked').length;
+            
+            if (selectedCount > 0) {
+                compareButton.disabled = false;
+                compareButton.textContent = `Compare (${selectedCount})`;
+            } else {
+                compareButton.disabled = true;
+                compareButton.textContent = 'Compare (0)';
+            }
+        };
+
+        // Listen for clicks on the entire list container for efficiency
+        paperList.addEventListener('change', function(event) {
+            if (event.target.type === 'checkbox') {
+                updateCompareButton();
+            }
+        });
+
+        // Initial check in case of browser auto-fill
+        updateCompareButton();
+    }
+});
+</script>
+{% endblock %}
